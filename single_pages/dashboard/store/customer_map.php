@@ -201,7 +201,7 @@ $defaultIncludeUnpaid = !empty($defaultIncludeUnpaid);
                         </div>
                         <div class="col-12 d-flex flex-wrap gap-2">
                             <button class="btn btn-primary rounded-0 fw-semibold" type="submit"><?= t('Refresh Safely'); ?></button>
-                            <button class="btn btn-outline-secondary rounded-0 fw-semibold" type="submit" name="retry_failed" value="1"><?= t('Retry Failed + Refresh'); ?></button>
+                            <button class="btn btn-outline-secondary" type="submit" name="retry_failed" value="1"><?= t('Retry Failed + Refresh'); ?></button>
                         </div>
                     </form>
                 </div>
@@ -252,7 +252,7 @@ $defaultIncludeUnpaid = !empty($defaultIncludeUnpaid);
                             </div>
                         </div>
                         <div class="col-12">
-                            <button class="btn btn-secondary rounded-0 fw-semibold" type="submit"><?= t('Save Settings'); ?></button>
+                            <button class="btn btn-secondary" type="submit"><?= t('Save Settings'); ?></button>
                         </div>
                     </form>
                 </div>
