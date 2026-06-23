@@ -1,6 +1,6 @@
 # Community Store Customer Map
 
-Community Store Customer Map is a concreteCMS 9.4+ dashboard package for visualizing Community Store customer hotspots on a Leaflet map.
+Community Store Customer Map is a concreteCMS 9.5+ dashboard package for visualizing Community Store customer hotspots on a Leaflet map.
 
 The package reads Community Store orders, extracts the billing postal code and country, geocodes only that postal-code/country pair, caches the coordinates locally, and displays postal-code regions as a heatmap, marker clusters, rankings and marketing opportunities.
 
@@ -26,6 +26,7 @@ When upgrading from an older version, previously cached full-address geocodes an
 - marker/cluster view
 - heatmap + marker view
 - order count or order value metric
+- money values formatted through the Community Store `Price::format()` utility
 - top postal regions ranking
 - opportunity signals for marketing actions
 - optional inclusion of unpaid/refunded orders

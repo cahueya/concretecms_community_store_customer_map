@@ -17,6 +17,7 @@ class CustomerMap extends DashboardPageController
     {
         $this->requireAsset('community-store-customer-map');
         $service = $this->app->make(CustomerMapService::class);
+        $this->set('service', $service);
         $this->set('stats', $service->getStats());
         $this->set('settings', $service->getSettings());
         $this->set('defaultMetric', (string) $this->request->query->get('metric', 'orders'));

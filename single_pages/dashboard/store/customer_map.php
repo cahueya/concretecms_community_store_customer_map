@@ -1,6 +1,7 @@
 <?php defined('C5_EXECUTE') or die('Access Denied.');
 /** @var Concrete\Core\View\View $view */
 /** @var Concrete\Core\Validation\CSRF\Token $token */
+/** @var Concrete\Package\CommunityStoreCustomerMap\Service\CustomerMapService $service */
 /** @var array $stats */
 /** @var array $settings */
 /** @var string $defaultMetric */
@@ -11,6 +12,7 @@
 $app = \Concrete\Core\Support\Facade\Application::getFacadeApplication();
 $token = $app->make(\Concrete\Core\Validation\CSRF\Token::class);
 $form = $app->make('helper/form');
+$service = $service ?? $app->make(\Concrete\Package\CommunityStoreCustomerMap\Service\CustomerMapService::class);
 $stats = $stats ?? [];
 $settings = $settings ?? [];
 $defaultMetric = in_array($defaultMetric ?? 'orders', ['orders', 'value'], true) ? $defaultMetric : 'orders';
@@ -58,13 +60,13 @@ $defaultIncludeUnpaid = !empty($defaultIncludeUnpaid);
         <div class="col-lg-2 col-md-4 col-sm-6">
             <div class="card rounded-0 border-0 shadow-sm h-100"><div class="card-body p-3">
                 <div class="customer-map-stat-label text-muted small fw-semibold"><?= t('Value'); ?></div>
-                <div class="customer-map-stat-value fw-semibold"><?= h(number_format((float) ($stats['totalValue'] ?? 0), 2)); ?></div>
+                <div class="customer-map-stat-value fw-semibold"><?= h($service->formatMoney((float) ($stats['totalValue'] ?? 0))); ?></div>
             </div></div>
         </div>
         <div class="col-lg-2 col-md-4 col-sm-6">
             <div class="card rounded-0 border-0 shadow-sm h-100"><div class="card-body p-3">
                 <div class="customer-map-stat-label text-muted small fw-semibold"><?= t('Paid Value'); ?></div>
-                <div class="customer-map-stat-value fw-semibold"><?= h(number_format((float) ($stats['paidTotalValue'] ?? 0), 2)); ?></div>
+                <div class="customer-map-stat-value fw-semibold"><?= h($service->formatMoney((float) ($stats['paidTotalValue'] ?? 0))); ?></div>
             </div></div>
         </div>
     </div>

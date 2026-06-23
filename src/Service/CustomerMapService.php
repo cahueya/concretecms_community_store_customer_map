@@ -6,6 +6,7 @@ use Concrete\Core\Application\Application;
 use Concrete\Package\CommunityStoreCustomerMap\Service\Geocoder\GeocoderInterface;
 use Concrete\Package\CommunityStoreCustomerMap\Service\Geocoder\GeocodeResult;
 use Concrete\Package\CommunityStoreCustomerMap\Value\CustomerAddress;
+use Concrete\Package\CommunityStore\Src\CommunityStore\Utilities\Price as StorePrice;
 use Doctrine\DBAL\Connection;
 
 defined('C5_EXECUTE') or die('Access Denied.');
@@ -117,6 +118,7 @@ class CustomerMapService
 
         return [
             'maxValue' => $maxValue,
+            'maxValueFormatted' => $metric === 'value' ? $this->formatMoney($maxValue) : number_format($maxValue),
             'metric' => $metric,
             'level' => $level,
             'includeUnpaid' => $includeUnpaid,
@@ -185,6 +187,8 @@ class CustomerMapService
             'paidOrders' => (int) ($aggregateStats['paidOrders'] ?? 0),
             'totalValue' => (float) ($aggregateStats['totalValue'] ?? 0),
             'paidTotalValue' => (float) ($aggregateStats['paidTotalValue'] ?? 0),
+            'totalValueFormatted' => $this->formatMoney((float) ($aggregateStats['totalValue'] ?? 0)),
+            'paidTotalValueFormatted' => $this->formatMoney((float) ($aggregateStats['paidTotalValue'] ?? 0)),
             'geocodeTotal' => $progress['total'],
             'geocodeOk' => $progress['ok'],
             'geocodePending' => $progress['pending'],
@@ -250,6 +254,22 @@ class CustomerMapService
         ];
     }
 
+    public function formatMoney(float $amount, ?string $currency = null): string
+    {
+        try {
+            return StorePrice::format($amount);
+        } catch (\Throwable $e) {
+            // Fall through to a safe plain-text fallback. The package requires Community Store,
+            // but this keeps the dashboard usable if the StorePrice utility is unavailable
+            // during early installation or a broken upgrade.
+        }
+
+        $formatted = number_format($amount, 2);
+        $currency = trim((string) ($currency ?: ''));
+
+        return $currency !== '' ? $formatted . ' ' . $currency : $formatted;
+    }
+
     private function fetchMappableRows(): array
     {
         return $this->db->fetchAllAssociative(
@@ -283,6 +303,9 @@ class CustomerMapService
                 'unpaidOrderCount' => (int) $row['unpaidOrderCount'],
                 'totalValue' => (float) $row['totalValue'],
                 'paidTotalValue' => (float) $row['paidTotalValue'],
+                'totalValueFormatted' => $this->formatMoney((float) $row['totalValue']),
+                'paidTotalValueFormatted' => $this->formatMoney((float) $row['paidTotalValue']),
+                'metricValueFormatted' => $metric === 'value' ? $this->formatMoney($value) : number_format($value),
                 'customerCount' => (int) $row['customerCount'],
                 'customerIDs' => $customerIDs,
                 'orderIDs' => $orderIDs,
@@ -366,6 +389,9 @@ class CustomerMapService
             $region['customerIDs'] = array_values($region['customerIDs']);
             $region['orderIDs'] = array_values($region['orderIDs']);
             $region['customerCount'] = count($region['customerIDs']);
+            $region['totalValueFormatted'] = $this->formatMoney((float) $region['totalValue']);
+            $region['paidTotalValueFormatted'] = $this->formatMoney((float) $region['paidTotalValue']);
+            $region['metricValueFormatted'] = $metric === 'value' ? $this->formatMoney((float) $region['metricValue']) : number_format((float) $region['metricValue']);
             unset($region['latWeighted'], $region['lngWeighted'], $region['weight']);
         }
         unset($region);

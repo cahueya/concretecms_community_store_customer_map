@@ -13,8 +13,13 @@ use Concrete\Package\CommunityStoreCustomerMap\Command\Task\Controller\RefreshCu
 class Controller extends Package
 {
     protected $pkgHandle = 'community_store_customer_map';
+<<<<<<< HEAD
     protected $appVersionRequired = '9.4.0';
     protected $pkgVersion = '0.1.8';
+=======
+    protected $appVersionRequired = '9.4.0';
+    protected $pkgVersion = '0.1.9';
+>>>>>>> c89277e (Version 0.1.19 - currency display)
     protected $packageDependencies = [
         'community_store' => '2.4.3',
     ];

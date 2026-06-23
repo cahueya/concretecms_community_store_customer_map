@@ -22,7 +22,10 @@
         return new Intl.NumberFormat().format(Number(value || 0));
     }
 
-    function formatMoney(value) {
+    function formatMoney(value, formatted) {
+        if (formatted) {
+            return String(formatted);
+        }
         return new Intl.NumberFormat(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(value || 0));
     }
 
@@ -37,7 +40,10 @@
     }
 
     function clusterLabelValue(value, metric) {
-        return metric === 'value' ? formatMoney(value) : formatNumber(value);
+        // Cluster sums are calculated client-side after Leaflet groups arbitrary points.
+        // To avoid showing unformatted money without the Community Store currency, value-mode
+        // clusters show the metric label while color/size carry the intensity.
+        return metric === 'value' ? 'Value' : formatNumber(value);
     }
 
     function createMarkerIcon(point) {
@@ -60,7 +66,7 @@
         }
         html += '<dl class="mb-2 mt-2">';
         html += '<dt>Orders</dt><dd>' + formatNumber(point.orderCount) + ' (' + formatNumber(point.paidOrderCount) + ' paid)</dd>';
-        html += '<dt>Value</dt><dd>' + formatMoney(point.totalValue) + ' (' + formatMoney(point.paidTotalValue) + ' paid)</dd>';
+        html += '<dt>Value</dt><dd>' + formatMoney(point.totalValue, point.totalValueFormatted) + ' (' + formatMoney(point.paidTotalValue, point.paidTotalValueFormatted) + ' paid)</dd>';
         html += '<dt>Customers</dt><dd>' + formatNumber(point.customerCount) + '</dd>';
         if (point.lastOrderDate) {
             html += '<dt>Last order</dt><dd>' + escapeHtml(point.lastOrderDate) + '</dd>';
@@ -98,7 +104,7 @@
             return '<tr>' +
                 '<td><strong class="d-block">' + escapeHtml(row.label || row.address) + '</strong><span class="text-muted small">Postal-code geocode group</span></td>' +
                 '<td class="text-end">' + formatNumber(row.paidOrderCount || row.orderCount || 0) + '</td>' +
-                '<td class="text-end">' + formatMoney(row.paidTotalValue || row.totalValue || 0) + '</td>' +
+                '<td class="text-end">' + formatMoney(row.paidTotalValue || row.totalValue || 0, row.paidTotalValueFormatted || row.totalValueFormatted || '') + '</td>' +
                 '<td class="text-end">' + formatNumber(row.customerCount || 0) + '</td>' +
                 '</tr>';
         }).join('');
@@ -119,7 +125,7 @@
                 '<div class="d-flex justify-content-between gap-3">' +
                     '<div><strong class="d-block">' + escapeHtml(row.label || row.address) + '</strong>' +
                     '<span class="badge rounded-0 text-bg-light border">' + escapeHtml(opportunity.label || 'Opportunity') + '</span></div>' +
-                    '<div class="text-end small"><div>' + formatNumber(row.paidOrderCount || 0) + ' orders</div><div>' + formatMoney(row.paidTotalValue || 0) + '</div></div>' +
+                    '<div class="text-end small"><div>' + formatNumber(row.paidOrderCount || 0) + ' orders</div><div>' + formatMoney(row.paidTotalValue || 0, row.paidTotalValueFormatted || '') + '</div></div>' +
                 '</div>' +
                 '<div class="text-muted small mt-2">' + escapeHtml(opportunity.description || '') + '</div>' +
                 '</div>';
@@ -385,7 +391,7 @@
                     renderOpportunities(data.opportunities || []);
                     if (bounds.length) {
                         map.fitBounds(bounds, { padding: [30, 30], maxZoom: currentLevel === 'postal' ? 10 : 12 });
-                        setStatus(formatNumber(points.length) + ' postal regions' + ' loaded. Max value: ' + formatNumber(data.maxValue || 0));
+                        setStatus(formatNumber(points.length) + ' postal regions' + ' loaded. Max value: ' + (data.metric === 'value' && data.maxValueFormatted ? data.maxValueFormatted : formatNumber(data.maxValue || 0)));
                     } else {
                         setStatus(emptyLabel);
                     }
