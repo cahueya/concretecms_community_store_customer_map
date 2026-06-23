@@ -13,7 +13,7 @@ use Concrete\Package\CommunityStoreCustomerMap\Command\Task\Controller\RefreshCu
 class Controller extends Package
 {
     protected $pkgHandle = 'community_store_customer_map';
-    protected $appVersionRequired = '9.5.0';
+    protected $appVersionRequired = '9.4.0';
     protected $pkgVersion = '0.1.8';
     protected $packageDependencies = [
         'community_store' => '2.4.3',
