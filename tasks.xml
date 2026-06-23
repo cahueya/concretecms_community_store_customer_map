@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<concrete5-cif version="1.0">
+    <tasks>
+        <task handle="refresh_customer_map" package="community_store_customer_map"/>
+    </tasks>
+    <tasksets>
+        <taskset handle="community_store_customer_map" name="Community Store Customer Map" package="community_store_customer_map">
+            <task handle="refresh_customer_map"/>
+        </taskset>
+    </tasksets>
+</concrete5-cif>
