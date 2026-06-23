@@ -56,7 +56,7 @@
         var html = '<div class="community-store-customer-map-popup">';
         html += '<strong>' + escapeHtml(point.label || point.address) + '</strong>';
         if (isPostal) {
-            html += '<div class="small text-muted mt-1">Postal-code region, ' + formatNumber(point.addressCount || 0) + ' address point(s)</div>';
+            html += '<div class="small text-muted mt-1">Postal-code region</div>';
         }
         html += '<dl class="mb-2 mt-2">';
         html += '<dt>Orders</dt><dd>' + formatNumber(point.orderCount) + ' (' + formatNumber(point.paidOrderCount) + ' paid)</dd>';
@@ -96,7 +96,7 @@
         }
         tbody.innerHTML = rows.map(function (row) {
             return '<tr>' +
-                '<td><strong class="d-block">' + escapeHtml(row.label || row.address) + '</strong><span class="text-muted small">' + formatNumber(row.addressCount || 0) + ' address point(s)</span></td>' +
+                '<td><strong class="d-block">' + escapeHtml(row.label || row.address) + '</strong><span class="text-muted small">Postal-code geocode group</span></td>' +
                 '<td class="text-end">' + formatNumber(row.paidOrderCount || row.orderCount || 0) + '</td>' +
                 '<td class="text-end">' + formatMoney(row.paidTotalValue || row.totalValue || 0) + '</td>' +
                 '<td class="text-end">' + formatNumber(row.customerCount || 0) + '</td>' +
@@ -385,7 +385,7 @@
                     renderOpportunities(data.opportunities || []);
                     if (bounds.length) {
                         map.fitBounds(bounds, { padding: [30, 30], maxZoom: currentLevel === 'postal' ? 10 : 12 });
-                        setStatus(formatNumber(points.length) + (currentLevel === 'postal' ? ' postal regions' : ' customer address points') + ' loaded. Max value: ' + formatNumber(data.maxValue || 0));
+                        setStatus(formatNumber(points.length) + ' postal regions' + ' loaded. Max value: ' + formatNumber(data.maxValue || 0));
                     } else {
                         setStatus(emptyLabel);
                     }

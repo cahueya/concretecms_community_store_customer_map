@@ -94,7 +94,7 @@ class CustomerMapService
     public function getMapPoints(bool $includeUnpaid = false, string $metric = 'orders', string $level = 'address'): array
     {
         $metric = $metric === 'value' ? 'value' : 'orders';
-        $level = $level === 'postal' ? 'postal' : 'address';
+        $level = 'postal';
         $addressRows = $this->fetchMappableRows();
         $rows = $level === 'postal' ? $this->buildPostalRegions($addressRows, $metric, $includeUnpaid) : $this->buildAddressPoints($addressRows, $metric, $includeUnpaid);
         $maxValue = $this->maxMetricValue($rows);
@@ -246,6 +246,7 @@ class CustomerMapService
             'max_per_refresh' => (int) $config->get('community_store_customer_map.geocoder.max_per_refresh', 25),
             'web_max_per_refresh' => (int) $config->get('community_store_customer_map.geocoder.web_max_per_refresh', 0),
             'rate_limit_seconds' => (int) $config->get('community_store_customer_map.geocoder.rate_limit_seconds', 1),
+            'scope' => (string) $config->get('community_store_customer_map.geocoder.scope', 'postal_country'),
         ];
     }
 
@@ -664,10 +665,7 @@ class CustomerMapService
 
     private function formatRegionLabel(string $postalCode, string $city, string $country): string
     {
-        $label = trim(implode(' ', array_filter([$postalCode, $city])));
-        if ($label === '') {
-            $label = t('No postal code');
-        }
+        $label = $postalCode !== '' ? $postalCode : t('No postal code');
         if ($country !== '') {
             $label .= ', ' . $country;
         }

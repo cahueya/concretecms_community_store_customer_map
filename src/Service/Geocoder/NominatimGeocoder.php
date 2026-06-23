@@ -51,60 +51,38 @@ class NominatimGeocoder implements GeocoderInterface
     }
 
     /**
-     * Prefer Nominatim's structured address search when Community Store has split address parts.
+     * Privacy-friendly geocoding: query only postal code plus country.
+     * Never send street, house number, customer name, city or a full free-text address to Nominatim.
      * Do not combine structured parameters with q=. Nominatim treats that as invalid/undefined.
      *
      * @return array<string, string|int>
      */
     private function buildQueryParameters(CustomerAddress $address): array
     {
-        $street = trim(implode(' ', array_filter([
-            $address->getPart('address1'),
-            $address->getPart('address2'),
-        ])));
-        $city = $address->getPart('city');
-        $state = $address->getPart('state_province');
-        $postalCode = $address->getPart('postal_code');
-        $country = $address->getPart('country');
+        $postalCode = trim((string) $address->getPart('postal_code'));
+        $country = trim((string) $address->getPart('country'));
 
-        $base = [
-            'format' => 'jsonv2',
-            'limit' => 1,
-            'addressdetails' => 1,
-            'layer' => 'address',
-        ];
-        if ($this->email) {
-            $base['email'] = $this->email;
-        }
-
-        $structured = array_filter([
-            'street' => $street,
-            'city' => $city,
-            'state' => $state,
-            'postalcode' => $postalCode,
-        ], static function ($value) {
-            return trim((string) $value) !== '';
-        });
-
-        if ($country !== '') {
-            $country = trim($country);
-            if (preg_match('/^[A-Za-z]{2}$/', $country)) {
-                $base['countrycodes'] = strtolower($country);
-            } else {
-                $structured['country'] = $country;
-            }
-        }
-
-        if ($structured) {
-            return $base + $structured;
-        }
-
-        $query = $address->getNormalizedAddress();
-        if ($query === '') {
+        if ($postalCode === '' || $country === '') {
             return [];
         }
 
-        return $base + ['q' => $query];
+        $params = [
+            'format' => 'jsonv2',
+            'limit' => 1,
+            'addressdetails' => 1,
+            'postalcode' => $postalCode,
+        ];
+        if ($this->email) {
+            $params['email'] = $this->email;
+        }
+
+        if (preg_match('/^[A-Za-z]{2}$/', $country)) {
+            $params['countrycodes'] = strtolower($country);
+        } else {
+            $params['country'] = $country;
+        }
+
+        return $params;
     }
 
     private function request(string $url): string

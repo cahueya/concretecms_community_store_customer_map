@@ -65,11 +65,12 @@ class OrderAddressExtractor
             'country' => $this->getAddressValue($order, 'country'),
         ];
 
-        $display = $this->formatDisplayAddress($parts);
         $normalized = $this->normalizeAddress($parts);
         if ($normalized === '') {
             return null;
         }
+
+        $display = $this->formatDisplayAddress($parts);
 
         return new CustomerAddress($normalized, $display ?: $normalized, $parts);
     }
@@ -91,30 +92,32 @@ class OrderAddressExtractor
 
     private function normalizeAddress(array $parts): string
     {
-        $ordered = [
-            $parts['address1'] ?? '',
-            $parts['address2'] ?? '',
-            $parts['postal_code'] ?? '',
-            $parts['city'] ?? '',
-            $parts['state_province'] ?? '',
-            $parts['country'] ?? '',
-        ];
+        $postalCode = $this->normalizePart($parts['postal_code'] ?? '');
+        $country = $this->normalizePart($parts['country'] ?? '');
 
-        $ordered = array_filter(array_map(static function ($value) {
-            $value = preg_replace('/\s+/u', ' ', trim((string) $value));
-            return $value ?: null;
-        }, $ordered));
+        if ($postalCode === '' || $country === '') {
+            return '';
+        }
 
-        return mb_strtolower(implode(', ', $ordered));
+        return mb_strtolower('postalcode:' . mb_strtoupper($postalCode) . '|country:' . mb_strtoupper($country));
     }
 
     private function formatDisplayAddress(array $parts): string
     {
-        $line1 = trim(implode(' ', array_filter([$parts['address1'] ?? '', $parts['address2'] ?? ''])));
-        $line2 = trim(implode(' ', array_filter([$parts['postal_code'] ?? '', $parts['city'] ?? ''])));
-        $line3 = trim(implode(' ', array_filter([$parts['state_province'] ?? '', $parts['country'] ?? ''])));
+        $postalCode = mb_strtoupper($this->normalizePart($parts['postal_code'] ?? ''));
+        $country = $this->normalizePart($parts['country'] ?? '');
 
-        return implode(', ', array_filter([$line1, $line2, $line3]));
+        if ($postalCode === '' || $country === '') {
+            return '';
+        }
+
+        return trim($postalCode . ', ' . $country);
+    }
+
+    private function normalizePart(string $value): string
+    {
+        $value = preg_replace('/\s+/u', ' ', trim($value));
+        return $value ?: '';
     }
 
     private function isPaid(Order $order): bool

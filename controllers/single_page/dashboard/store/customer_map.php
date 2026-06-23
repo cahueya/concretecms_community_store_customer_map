@@ -20,7 +20,7 @@ class CustomerMap extends DashboardPageController
         $this->set('stats', $service->getStats());
         $this->set('settings', $service->getSettings());
         $this->set('defaultMetric', (string) $this->request->query->get('metric', 'orders'));
-        $this->set('defaultMapLevel', (string) $this->request->query->get('level', 'postal'));
+        $this->set('defaultMapLevel', 'postal');
         $this->set('defaultDisplayMode', (string) $this->request->query->get('display', 'heatmap'));
         $this->set('defaultIncludeUnpaid', (bool) $this->request->query->get('include_unpaid', false));
     }
@@ -30,7 +30,7 @@ class CustomerMap extends DashboardPageController
         $service = $this->app->make(CustomerMapService::class);
         $includeUnpaid = $this->request->query->get('include_unpaid') === '1';
         $metric = $this->request->query->get('metric') === 'value' ? 'value' : 'orders';
-        $level = $this->request->query->get('level') === 'address' ? 'address' : 'postal';
+        $level = 'postal';
 
         return new JsonResponse($service->getMapPoints($includeUnpaid, $metric, $level));
     }
@@ -55,7 +55,7 @@ class CustomerMap extends DashboardPageController
 
         try {
             $result = $service->refresh($includeUnpaid, $fromDate, $toDate, $max, $retryFailed);
-            $this->flash('success', t('Customer map refreshed safely from the dashboard. Addresses: %s, geocoded this request: %s, failed this request: %s, pending: %s, failed total: %s, mappable: %s.', $result['addresses'], $result['geocoded'], $result['failed'], $result['pending'], $result['failedTotal'], $result['mappable']));
+            $this->flash('success', t('Customer map refreshed safely from the dashboard. Postal regions: %s, geocoded this request: %s, failed this request: %s, pending: %s, failed total: %s, mappable: %s.', $result['addresses'], $result['geocoded'], $result['failed'], $result['pending'], $result['failedTotal'], $result['mappable']));
             if ($configuredMax > $max) {
                 $this->flash('info', t('Dashboard refresh is capped at %s external geocoding request(s). Use the CLI task for larger initial imports; the CLI task still uses the configured task limit of %s.', $max, $configuredMax));
             }

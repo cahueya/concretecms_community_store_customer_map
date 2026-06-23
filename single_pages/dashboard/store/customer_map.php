@@ -14,14 +14,14 @@ $form = $app->make('helper/form');
 $stats = $stats ?? [];
 $settings = $settings ?? [];
 $defaultMetric = in_array($defaultMetric ?? 'orders', ['orders', 'value'], true) ? $defaultMetric : 'orders';
-$defaultMapLevel = in_array($defaultMapLevel ?? 'postal', ['postal', 'address'], true) ? $defaultMapLevel : 'postal';
+$defaultMapLevel = 'postal';
 $defaultDisplayMode = in_array($defaultDisplayMode ?? 'heatmap', ['markers', 'heatmap', 'both'], true) ? $defaultDisplayMode : 'heatmap';
 $defaultIncludeUnpaid = !empty($defaultIncludeUnpaid);
 ?>
 
 <div class="community-store-customer-map ccm-dashboard-content-inner text-start">
     <p class="text-muted mb-4">
-        <?= t('Visualize Community Store customer hotspots based on aggregated billing addresses. Use the postal-code heatmap for marketing decisions; exact-address markers remain available for operational checks. Geocoding is cached and large initial imports should be processed through the CLI task.'); ?>
+        <?= t('Visualize Community Store customer hotspots with a privacy-friendly postal-code heatmap. Geocoding uses only postal code and country, not full billing addresses. Large initial imports should be processed through the CLI task.'); ?>
     </p>
 
     <div class="row g-3 mb-4">
@@ -97,8 +97,7 @@ $defaultIncludeUnpaid = !empty($defaultIncludeUnpaid);
                 <div class="col-lg-3 col-md-6">
                     <label class="form-label fw-semibold" for="customer-map-level"><?= t('Map level'); ?></label>
                     <select id="customer-map-level" class="form-select rounded-0">
-                        <option value="postal"<?= $defaultMapLevel === 'postal' ? ' selected' : ''; ?>><?= t('Postal code regions'); ?></option>
-                        <option value="address"<?= $defaultMapLevel === 'address' ? ' selected' : ''; ?>><?= t('Individual addresses'); ?></option>
+                        <option value="postal" selected><?= t('Postal code regions'); ?></option>
                     </select>
                 </div>
                 <div class="col-lg-3 col-md-6">
@@ -146,7 +145,7 @@ $defaultIncludeUnpaid = !empty($defaultIncludeUnpaid);
             <div class="card rounded-0 border-0 shadow-sm h-100 text-start">
                 <div class="card-body p-4">
                     <h2 class="h5 fw-semibold mb-3"><?= t('Top Postal Regions'); ?></h2>
-                    <p class="text-muted small mb-3"><?= t('The ranking uses postal-code aggregation, independent of the selected map level.'); ?></p>
+                    <p class="text-muted small mb-3"><?= t('The ranking uses privacy-friendly postal-code aggregation.'); ?></p>
                     <div class="table-responsive">
                         <table class="table table-sm align-middle community-store-customer-map-table">
                             <thead>
@@ -183,7 +182,7 @@ $defaultIncludeUnpaid = !empty($defaultIncludeUnpaid);
             <div class="card rounded-0 border-0 shadow-sm h-100 text-start">
                 <div class="card-body p-4">
                     <h2 class="h5 fw-semibold mb-3"><?= t('Refresh Geo Index'); ?></h2>
-                    <p class="text-muted small"><?= t('This reads Community Store orders, rebuilds aggregates and only runs the small web-safe number of external geocoding requests configured below. Use the CLI task for larger overnight imports.'); ?></p>
+                    <p class="text-muted small"><?= t('This reads Community Store orders, rebuilds postal-code aggregates and only runs the small web-safe number of external geocoding requests configured below. Use the CLI task for larger overnight imports.'); ?></p>
                     <form method="post" action="<?= h($view->action('refresh')); ?>" class="row g-3">
                         <?php $token->output('community_store_customer_map_refresh'); ?>
                         <div class="col-md-6">
@@ -243,8 +242,13 @@ $defaultIncludeUnpaid = !empty($defaultIncludeUnpaid);
                             <input type="url" class="form-control rounded-0" name="nominatim_endpoint" id="nominatim_endpoint" value="<?= h((string) ($settings['nominatim_endpoint'] ?? 'https://nominatim.openstreetmap.org/search')); ?>">
                         </div>
                         <div class="col-12">
+                            <div class="alert alert-info rounded-0 small mb-0">
+                                <?= t('Privacy mode is active: geocoding queries contain only postal code and country. Existing full-address geocodes from earlier versions are cleared once during the upgrade to this version.'); ?>
+                            </div>
+                        </div>
+                        <div class="col-12">
                             <div class="alert alert-warning rounded-0 small mb-0">
-                                <?= t('Respect your provider terms. The public Nominatim service should be used sparingly; cached results and low CLI limits are strongly recommended. Large imports should run through the CLI task, not through the dashboard.'); ?>
+                                <?= t('Respect your provider terms. This package sends only postal code and country to the geocoder. The public Nominatim service should still be used sparingly; cached results and low CLI limits are strongly recommended. Large imports should run through the CLI task, not through the dashboard.'); ?>
                             </div>
                         </div>
                         <div class="col-12">

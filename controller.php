@@ -13,8 +13,8 @@ use Concrete\Package\CommunityStoreCustomerMap\Command\Task\Controller\RefreshCu
 class Controller extends Package
 {
     protected $pkgHandle = 'community_store_customer_map';
-    protected $appVersionRequired = '9.4.0';
-    protected $pkgVersion = '0.1.7';
+    protected $appVersionRequired = '9.5.0';
+    protected $pkgVersion = '0.1.8';
     protected $packageDependencies = [
         'community_store' => '2.4.3',
     ];
@@ -30,7 +30,7 @@ class Controller extends Package
 
     public function getPackageDescription()
     {
-        return t('Shows aggregated Community Store customer hotspots, postal-code opportunities and heatmaps on a Leaflet dashboard map.');
+        return t('Shows privacy-friendly Community Store customer hotspots, postal-code opportunities and heatmaps on a Leaflet dashboard map.');
     }
 
     public function on_start()
@@ -45,6 +45,7 @@ class Controller extends Package
         $this->installDatabase();
         $this->installDashboardPage($pkg);
         $this->installContentFile('tasks.xml');
+        $this->ensurePrivacyGeocodingScope();
 
         return $pkg;
     }
@@ -56,6 +57,7 @@ class Controller extends Package
         $this->installDatabase();
         $this->installDashboardPage($pkg);
         $this->installContentFile('tasks.xml');
+        $this->ensurePrivacyGeocodingScope();
     }
 
     public function registerAssets(): void
@@ -141,7 +143,7 @@ class Controller extends Package
         if ($page && !$page->isError()) {
             $page->update([
                 'cName' => t('Customer Map'),
-                'cDescription' => t('View customer hotspots based on Community Store billing addresses.'),
+                'cDescription' => t('View privacy-friendly customer hotspots based on Community Store billing postal codes.'),
             ]);
         }
     }
@@ -209,6 +211,29 @@ class Controller extends Package
         $this->ensureColumn('CommunityStoreCustomerMapAggregates', 'city', 'VARCHAR(255) DEFAULT NULL AFTER postalCode');
         $this->ensureColumn('CommunityStoreCustomerMapAggregates', 'country', 'VARCHAR(255) DEFAULT NULL AFTER city');
         $this->ensureIndex('CommunityStoreCustomerMapAggregates', 'IDX_CSCM_AGG_POSTAL', 'CREATE INDEX IDX_CSCM_AGG_POSTAL ON CommunityStoreCustomerMapAggregates (country, postalCode)');
+    }
+
+
+    public function ensurePrivacyGeocodingScope(): void
+    {
+        $config = $this->app->make('config');
+        $scope = (string) $config->get('community_store_customer_map.geocoder.scope', '');
+        if ($scope !== 'postal_country') {
+            $db = $this->app->make('database')->connection();
+            if ($this->tableExists('CommunityStoreCustomerMapGeocodes')) {
+                $db->executeStatement('DELETE FROM CommunityStoreCustomerMapGeocodes');
+            }
+            if ($this->tableExists('CommunityStoreCustomerMapAggregates')) {
+                $db->executeStatement('DELETE FROM CommunityStoreCustomerMapAggregates');
+            }
+            $config->save('community_store_customer_map.geocoder.scope', 'postal_country');
+        }
+    }
+
+    public function tableExists(string $table): bool
+    {
+        $db = $this->app->make('database')->connection();
+        return (bool) $db->fetchOne('SHOW TABLES LIKE ?', [$table]);
     }
 
     public function ensureColumn(string $table, string $column, string $definition): void
